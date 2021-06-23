@@ -105,7 +105,7 @@
       },
     },
     methods: {
-      findSuggestion () {
+      findSuggestion (isOriginalString) {
         let string = '';
         for(let suggestion of this.suggestions) {
           const mainString = this.message;
@@ -121,6 +121,9 @@
             count++;
           }
           if(!incorrect) {
+            if(isOriginalString) {
+              return suggestion;
+            }
             return suggestionString;
           }
         }
@@ -129,22 +132,18 @@
       tabButtonSuggest (e) {
         if(e.key.toLowerCase() === 'tab') {
           e.preventDefault();
-          const suggestionMessage = this.findSuggestion();
-          if(suggestionMessage[this.message.length] !== ' ') {
-            let isSpace = false;
-            let string = '';
-            let count = this.message.length;
-            while(!isSpace && count < 50) {
-              if(suggestionMessage[count] !== ' ' && suggestionMessage[count] !== undefined) {
-                const space = suggestionMessage[count+1] === ' ' && suggestionMessage[count+2] !== undefined ? ' ' : '';
-                string = `${string}${suggestionMessage[count]}${space}`;
-              } else {
-                isSpace = true;
-              }
-              count++;
+          const suggestionMessage = this.findSuggestion(true);
+          if(!suggestionMessage.length) return;
+          let isSpace = false;
+          let count = this.message.length;
+          while(!isSpace && count < 50) {
+            if((suggestionMessage[count] === ' ' && count !== this.message.length) || suggestionMessage[count] === undefined) {
+              isSpace = true;
             }
-            this.message = `${this.message}${string}`;
+            count++;
           }
+          const space = suggestionMessage[count+1] === ' ' && suggestionMessage[count+2] !== undefined ? ' ' : '';
+          this.message = `${suggestionMessage.slice(0, count)}${space}`;
         }
       },
       sendMessage () {
